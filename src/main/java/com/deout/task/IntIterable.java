@@ -1,36 +1,52 @@
 package com.deout.task;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 public class IntIterable implements Iterable<Integer> {
-    int[] backed;
+    private final List<Integer> data;
+    private int lastIterationIndex = 0;
+    private boolean canRemove = false; // to ensure remove() is only called after next()
 
-
-    public IntIterable(int[] backed) {
-        this.backed = backed;
+    public IntIterable(int[] data) {
+        this.data = Arrays.stream(data).boxed().collect(Collectors.toList());
     }
 
     public Iterator<Integer> iterator() {
         return new IntIterator();
     }
 
-    private int index = 0 ;
-
     private class IntIterator implements Iterator<Integer> {
 
+        @Override
         public boolean hasNext() {
-            //TODO: Your task is implement this method
-            return false;
+            return lastIterationIndex < data.size();
         }
 
+        @Override
         public Integer next() {
-            //TODO: Your task is implement this method
-            return 0;
+            if (!hasNext()) {
+                throw new NoSuchElementException("No more elements to get.");
+            }
+            canRemove = true;
+            return data.get(lastIterationIndex++);
         }
 
+        /**
+         * Ensures that we keep contract between next() and remove().
+         * @see Iterator
+         */
+        @Override
         public void remove() {
-            //TODO: Your task is implement this method
-            throw new IllegalStateException("Could not remove from array");
+            if (!canRemove) {
+
+                throw new IllegalStateException("Cannot call remove() before next()");
+            }
+            data.remove(--lastIterationIndex);
+            canRemove = false;
         }
     }
 }
